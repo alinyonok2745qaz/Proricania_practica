@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кабинет Прорицаний | Divination Cabinet</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;600;800&family=Marcellus&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gothic: {
+                            900: '#0a0612',
+                            800: '#130c21',
+                            700: '#1f1335',
+                            600: '#321d52',
+                        },
+                        gold: {
+                            400: '#f6d365',
+                            500: '#fda085',
+                            600: '#d4af37',
+                            700: '#aa820a',
+                        },
+                        mystic: {
+                            purple: '#9d4edd',
+                            cyan: '#00f5d4',
+                            magenta: '#f72585'
+                        }
+                    },
+                    fontFamily: {
+                        cinzel: ['Cinzel', 'serif'],
+                        decorative: ['Cinzel Decorative', 'serif'],
+                        marcellus: ['Marcellus', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            background-color: #06030a;
+            color: #e2d9f3;
+            font-family: 'Marcellus', serif;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0612;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #321d52;
+            border-radius: 4px;
+            border: 1px solid #d4af37;
+        }
+
+        /* Glassmorphism panel */
+        .glass-panel {
+            background: rgba(19, 12, 33, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.7);
+        }
+
+        .glass-panel-active {
+            border-color: rgba(212, 175, 55, 0.7);
+            box-shadow: 0 0 20px rgba(157, 78, 221, 0.3);
+        }
+
+        /* Glow effects */
+        .gold-glow {
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.6), 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+
+        .purple-glow {
+            box-shadow: 0 0 25px rgba(157, 78, 221, 0.4);
+        }
+
+        /* Card 3D Flip Effects */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        /* Canvas Overlay Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(1deg); }
+        }
+        .floating {
+            animation: float 5s ease-in-out infinite;
+        }
+
+        /* Particle Stars Background */
+        #stars-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Custom Buttons */
+        .btn-gothic {
+            background: linear-gradient(135deg, #1f1335 0%, #321d52 100%);
+            border: 1px solid #d4af37;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-gothic::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.2), transparent);
+            transition: 0.5s;
+        }
+        .btn-gothic:hover::before {
+            left: 100%;
+        }
+        .btn-gothic:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+            border-color: #f6d365;
+        }
+
+        /* Coffee cup animation */
+        @keyframes shakeCup {
+            0% { transform: rotate(0deg) translateY(0); }
+            20% { transform: rotate(-12deg) translateY(-8px); }
+            40% { transform: rotate(12deg) translateY(4px); }
+            60% { transform: rotate(-8deg) translateY(-4px); }
+            80% { transform: rotate(8deg) translateY(2px); }
+            100% { transform: rotate(0deg) translateY(0); }
+        }
+        .shake-cup {
+            animation: shakeCup 0.8s ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col relative selection:bg-purple-900 selection:text-gold-400">
+
+    <!-- Ambient Stars Canvas -->
+    <canvas id="stars-canvas"></canvas>
+
+    <!-- Header / Navbar -->
+    <header class="relative z-10 border-b border-gold-600/30 glass-panel py-4 px-6 sticky top-0">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid me-2 fa-eye text-2xl text-gold-600 animate-pulse"></i>
+                <h1 class="font-decorative text-xl sm:text-2xl lg:text-3xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-gold-400 via-purple-300 to-gold-600 gold-glow">
+                    КАБИНЕТ ПРОРИЦАНИЙ
+                </h1>
+            </div>
+            
+            <!-- Audio Toggle & Ambient Control -->
+            <div class="flex items-center gap-4">
+                <button id="sound-toggle" class="px-3 py-1.5 rounded-full border border-gold-600/50 bg-gothic-800/80 hover:bg-gothic-700 text-xs sm:text-sm text-gold-400 flex items-center gap-2 transition">
+                    <i class="fa-solid fa-volume-high" id="sound-icon"></i>
+                    <span id="sound-text">Звук: Вкл</span>
+                </button>
+                <div class="text-xs text-purple-300/70 border-l border-purple-800/60 pl-4 hidden sm:block">
+                    <i class="fa-solid fa-moon text-gold-600 mr-1"></i> Астрологический Час: <span class="text-gold-400 font-semibold">Меркурий</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="relative z-10 max-w-7xl mx-auto px-4 mt-6 w-full">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <button onclick="switchTab('crystal')" id="tab-crystal" class="btn-gothic p-3 rounded-xl font-cinzel font-semibold text-xs sm:text-sm flex flex-col sm:flex-row items-center justify-center gap-2 text-gold-400 glass-panel-active">
+                <i class="fa-solid fa-circle-notch text-lg"></i>
+                <span>Хрустальный Шар</span>
+            </button>
+            <button onclick="switchTab('coffee')" id="tab-coffee" class="btn-gothic p-3 rounded-xl font-cinzel font-semibold text-xs sm:text-sm flex flex-col sm:flex-row items-center justify-center gap-2 text-gray-300 hover:text-gold-400">
+                <i class="fa-solid fa-mug-hot text-lg"></i>
+                <span>Кофейная Гуща</span>
+            </button>
+            <button onclick="switchTab('tarot')" id="tab-tarot" class="btn-gothic p-3 rounded-xl font-cinzel font-semibold text-xs sm:text-sm flex flex-col sm:flex-row items-center justify-center gap-2 text-gray-300 hover:text-gold-400">
+                <i class="fa-solid fa-hat-wizard text-lg"></i>
+                <span>Карта Дня (Таро)</span>
+            </button>
+            <button onclick="switchTab('runes')" id="tab-runes" class="btn-gothic p-3 rounded-xl font-cinzel font-semibold text-xs sm:text-sm flex flex-col sm:flex-row items-center justify-center gap-2 text-gray-300 hover:text-gold-400">
+                <i class="fa-solid fa-gem text-lg"></i>
+                <span>Руна Дня</span>
+            </button>
+            <button onclick="switchTab('artifacts')" id="tab-artifacts" class="btn-gothic p-3 rounded-xl font-cinzel font-semibold text-xs sm:text-sm flex flex-col sm:flex-row items-center justify-center gap-2 text-gray-400 col-span-2 md:col-span-1 opacity-80">
+                <i class="fa-solid fa-lock text-lg text-gold-600"></i>
+                <span>Артефактология</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content Canvas / Workspace -->
+    <main class="relative z-10 flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 my-4">
+
+        <!-- ================= 1. CRYSTAL BALL SECTION ================= -->
+        <section id="sec-crystal" class="tab-content block space-y-6">
+            <div class="glass-panel p-6 rounded-2xl border border-gold-600/30 text-center relative overflow-hidden">
+                <h2 class="font-decorative text-xl sm:text-2xl text-gold-400 mb-2">Оракул Сферы Судьбы</h2>
+                <p class="text-sm text-purple-200/80 mb-6 max-w-xl mx-auto">
+                    Сосредоточьтесь на волнующем вас вопросе. Прикоснитесь к мистическому шару, чтобы пробудить духов и проявить туманное знамение.
+                </p>
+
+                <!-- Crystal Ball Interactive Canvas Container -->
+                <div class="relative w-64 h-64 sm:w-80 sm:h-80 mx-auto my-4 cursor-pointer group" id="crystal-ball-container">
+                    <canvas id="crystal-canvas" width="320" height="320" class="w-full h-full rounded-full transition-transform duration-500 group-hover:scale-105"></canvas>
+                    
+                    <!-- Glow Stand -->
+                    <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 w-48 h-12 bg-gradient-to-t from-gold-600/40 via-purple-900/60 to-transparent rounded-full blur-md pointer-events-none"></div>
+                    <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-gold-600/80 text-3xl pointer-events-none">
+                        <i class="fa-solid fa-crown"></i>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <button id="btn-gaze-crystal" class="btn-gothic px-8 py-3 rounded-xl font-cinzel font-bold text-gold-400 text-base shadow-lg">
+                        <i class="fa-solid fa-sparkles mr-2"></i>Вглядеться в Шар
+                    </button>
+                </div>
+
+                <!-- Result Card -->
+                <div id="crystal-result" class="hidden mt-8 p-6 glass-panel rounded-xl border border-purple-500/40 text-left max-w-2xl mx-auto animate-fade-in">
+                    <div class="flex items-center justify-between border-b border-gold-600/30 pb-3 mb-4">
+                        <div class="flex items-center gap-3">
+                            <span id="crystal-sign-icon" class="text-3xl text-gold-400">🔮</span>
+                            <div>
+                                <h3 id="crystal-sign-title" class="font-cinzel font-bold text-xl text-gold-400">Образ: Тень</h3>
+                                <span id="crystal-sign-rarity" class="text-xs px-2 py-0.5 rounded-full bg-purple-900/80 text-purple-300 border border-purple-500/30">Шанс выпадения: 25%</span>
+                            </div>
+                        </div>
+                        <span id="crystal-sign-nature" class="text-xs font-semibold px-3 py-1 rounded-full bg-amber-950/60 text-amber-300 border border-amber-600/40">Предостережение</span>
+                    </div>
+
+                    <div class="space-y-3 text-sm leading-relaxed">
+                        <p><strong class="text-gold-400 font-cinzel">Суть Видения:</strong> <span id="crystal-desc-core" class="text-gray-200"></span></p>
+                        <p><strong class="text-gold-400 font-cinzel">В вопросах будущего:</strong> <span id="crystal-desc-future" class="text-gray-300"></span></p>
+                        <div class="p-3 bg-gothic-900/70 border-l-2 border-gold-500 rounded text-xs text-purple-200 italic">
+                            «Шар шепчет: <span id="crystal-quote">...</span>»
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 2. COFFEE GROUNDS SECTION ================= -->
+        <section id="sec-coffee" class="tab-content hidden space-y-6">
+            <div class="glass-panel p-6 rounded-2xl border border-gold-600/30 text-center relative">
+                <h2 class="font-decorative text-xl sm:text-2xl text-gold-400 mb-2">Таинство Кофейной Гущи</h2>
+                <p class="text-sm text-purple-200/80 mb-6 max-w-xl mx-auto">
+                    Взболтайте священный напиток. Осадок на дне фаянсовой чаши покажет судьбоносный узор.
+                </p>
+
+                <!-- Interactive Cup -->
+                <div class="relative w-64 h-64 mx-auto my-4 flex items-center justify-center">
+                    <div id="coffee-cup" class="relative w-56 h-56 rounded-full border-8 border-amber-100/20 bg-gothic-900 shadow-2xl flex items-center justify-center overflow-hidden cursor-pointer group transition-transform duration-300">
+                        <!-- Inner Cup Rim -->
+                        <div class="absolute inset-2 rounded-full border-4 border-amber-900/40 bg-stone-950 flex items-center justify-center overflow-hidden">
+                            <!-- Coffee Ground Canvas -->
+                            <canvas id="coffee-canvas" width="220" height="220" class="rounded-full w-full h-full"></canvas>
+                        </div>
+                        <!-- Cup Handle (Decorative) -->
+                        <div class="absolute -right-6 top-1/2 -translate-y-1/2 w-8 h-16 border-4 border-amber-100/20 rounded-r-full pointer-events-none"></div>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <button id="btn-shake-coffee" class="btn-gothic px-8 py-3 rounded-xl font-cinzel font-bold text-gold-400 text-base shadow-lg">
+                        <i class="fa-solid fa-rotate-right mr-2"></i>Взболтать Чашку
+                    </button>
+                </div>
+
+                <!-- Coffee Result -->
+                <div id="coffee-result" class="hidden mt-8 p-6 glass-panel rounded-xl border border-purple-500/40 text-left max-w-2xl mx-auto animate-fade-in">
+                    <div class="flex items-center justify-between border-b border-gold-600/30 pb-3 mb-4">
+                        <div class="flex items-center gap-3">
+                            <span id="coffee-pattern-icon" class="text-3xl text-gold-400">☕</span>
+                            <div>
+                                <h3 id="coffee-pattern-title" class="font-cinzel font-bold text-xl text-gold-400">Узор: Дорога</h3>
+                                <span id="coffee-pattern-rarity" class="text-xs px-2 py-0.5 rounded-full bg-purple-900/80 text-purple-300 border border-purple-500/30">Шанс: 30%</span>
+                            </div>
+                        </div>
+                        <span id="coffee-pattern-nature" class="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-950/60 text-emerald-300 border border-emerald-600/40">Благоприятный знак</span>
+                    </div>
+
+                    <div class="space-y-3 text-sm leading-relaxed">
+                        <p><strong class="text-gold-400 font-cinzel">Значение Символа:</strong> <span id="coffee-desc-core" class="text-gray-200"></span></p>
+                        <p><strong class="text-gold-400 font-cinzel">Совет Оракула:</strong> <span id="coffee-desc-advice" class="text-gray-300"></span></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 3. TAROT CARDS SECTION ================= -->
+        <section id="sec-tarot" class="tab-content hidden space-y-6">
+            <div class="glass-panel p-6 rounded-2xl border border-gold-600/30 text-center relative">
+                <h2 class="font-decorative text-xl sm:text-2xl text-gold-400 mb-2">Старшие Арканы — Карта Дня</h2>
+                <p class="text-sm text-purple-200/80 mb-6 max-w-xl mx-auto">
+                    Вытяните вашу карту Старших Арканов. Выясните главную энергию и девиз текущего дня.
+                </p>
+
+                <!-- Card Flip Interactive Container -->
+                <div class="w-56 h-96 mx-auto my-4 perspective-1000">
+                    <div id="tarot-card-inner" class="relative w-full h-full transition-transform duration-700 transform-style-3d cursor-pointer">
+                        
+                        <!-- Card Back (Default) -->
+                        <div class="absolute inset-0 rounded-xl border-2 border-gold-600/60 glass-panel bg-gothic-900 p-3 backface-hidden flex flex-col items-center justify-between shadow-2xl">
+                            <div class="w-full h-full border border-gold-600/30 rounded-lg flex flex-col items-center justify-center bg-radial-gothic p-4">
+                                <i class="fa-solid fa-star-and-crescent text-4xl text-gold-500/80 mb-2"></i>
+                                <span class="font-decorative text-xs text-gold-400/80 tracking-widest text-center">ARCANUM MAJOR</span>
+                                <div class="mt-4 text-xs text-purple-300/60 border-t border-gold-600/20 pt-2">Коснитесь, чтобы перевернуть</div>
+                            </div>
+                        </div>
+
+                        <!-- Card Front (Result) -->
+                        <div class="absolute inset-0 rounded-xl border-2 border-gold-400 glass-panel bg-gothic-800 p-4 backface-hidden rotate-y-180 flex flex-col items-center justify-between shadow-2xl">
+                            <div class="w-full h-full border border-gold-600/40 rounded-lg p-3 flex flex-col items-center justify-between bg-gothic-900/90">
+                                <div class="text-xs font-cinzel text-gold-400 tracking-wider" id="tarot-card-num">0</div>
+                                
+                                <div class="my-auto text-center">
+                                    <div id="tarot-card-icon" class="text-5xl my-2 text-gold-400">🃏</div>
+                                    <h3 id="tarot-card-title" class="font-cinzel font-bold text-lg text-purple-200 mt-2">Шут</h3>
+                                    <span id="tarot-card-keywords" class="text-[10px] text-purple-300/80 block mt-1">Начало, спонтанность</span>
+                                </div>
+
+                                <div class="text-[11px] text-gold-500/90 font-cinzel text-center border-t border-gold-600/30 w-full pt-2">
+                                    Старший Аркан
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-center gap-4">
+                    <button id="btn-draw-tarot" class="btn-gothic px-8 py-3 rounded-xl font-cinzel font-bold text-gold-400 text-base shadow-lg">
+                        <i class="fa-solid fa-hand-holding-magic mr-2"></i>Вытянуть Аркан
+                    </button>
+                </div>
+
+                <!-- Tarot Interpretation Panel -->
+                <div id="tarot-result" class="hidden mt-8 p-6 glass-panel rounded-xl border border-purple-500/40 text-left max-w-2xl mx-auto animate-fade-in">
+                    <h3 id="tarot-res-title" class="font-cinzel font-bold text-xl text-gold-400 mb-2">Аркан: Шут (The Fool)</h3>
+                    <p class="text-xs text-purple-300 mb-4" id="tarot-res-rarity">Шанс выпадения: 4.5%</p>
+                    
+                    <div class="space-y-3 text-sm">
+                        <p><strong class="text-gold-400 font-cinzel">Прогноз на день:</strong> <span id="tarot-res-forecast" class="text-gray-200"></span></p>
+                        <p><strong class="text-gold-400 font-cinzel">Совет дня:</strong> <span id="tarot-res-advice" class="text-gray-300"></span></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 4. RUNES SECTION ================= -->
+        <section id="sec-runes" class="tab-content hidden space-y-6">
+            <div class="glass-panel p-6 rounded-2xl border border-gold-600/30 text-center relative">
+                <h2 class="font-decorative text-xl sm:text-2xl text-gold-400 mb-2">Скандинавские Руны — Старший Футарк</h2>
+                <p class="text-sm text-purple-200/80 mb-6 max-w-xl mx-auto">
+                    Опустите руку в кожаный мешочек с древесными плашками. Выберите одну руну, чтобы прочесть древние знаки Одина.
+                </p>
+
+                <!-- Rune Bag & Drawn Rune Holder -->
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-8 my-6">
+                    <!-- Rune Bag Button -->
+                    <div id="rune-bag" class="w-40 h-40 glass-panel rounded-full border-2 border-gold-600/50 flex flex-col items-center justify-center cursor-pointer hover:border-gold-400 transition-all duration-300 group shadow-lg">
+                        <i class="fa-solid fa-sack-dollar text-5xl text-amber-700 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-xs font-cinzel text-gold-400 mt-2">Мешок с Рунами</span>
+                    </div>
+
+                    <div class="text-2xl text-gold-600 hidden sm:block"><i class="fa-solid fa-arrow-right-long"></i></div>
+
+                    <!-- Drawn Wooden Rune Tile -->
+                    <div id="rune-tile" class="w-36 h-48 bg-stone-900 border-4 border-amber-900/80 rounded-2xl shadow-2xl flex flex-col items-center justify-center p-4 relative overflow-hidden transition-all duration-500">
+                        <div class="absolute inset-0 bg-stone-950/60 pointer-events-none"></div>
+                        <span id="rune-symbol" class="text-6xl font-bold text-amber-500 relative z-10 font-serif drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]">ᚠ</span>
+                        <span id="rune-name-short" class="text-xs font-cinzel text-amber-200/80 mt-3 relative z-10">Феху</span>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <button id="btn-draw-rune" class="btn-gothic px-8 py-3 rounded-xl font-cinzel font-bold text-gold-400 text-base shadow-lg">
+                        <i class="fa-solid fa-dharmachakra mr-2"></i>Достать Руну
+                    </button>
+                </div>
+
+                <!-- Rune Detailed Interpretation -->
+                <div id="rune-result" class="hidden mt-8 p-6 glass-panel rounded-xl border border-purple-500/40 text-left max-w-2xl mx-auto animate-fade-in">
+                    <div class="flex items-center justify-between border-b border-gold-600/30 pb-3 mb-4">
+                        <div>
+                            <h3 id="rune-res-title" class="font-cinzel font-bold text-2xl text-amber-400">Руна: Fehu (Феху)</h3>
+                            <span id="rune-res-meaning-short" class="text-xs text-purple-300">Богатство, Процветание, Владение</span>
+                        </div>
+                        <span id="rune-res-symbol-large" class="text-4xl text-amber-500 font-mono">ᚠ</span>
+                    </div>
+
+                    <div class="space-y-3 text-sm">
+                        <p><strong class="text-gold-400 font-cinzel">Энергетика дня:</strong> <span id="rune-res-energy" class="text-gray-200"></span></p>
+                        <p><strong class="text-gold-400 font-cinzel">Мудрость Футарка:</strong> <span id="rune-res-wisdom" class="text-gray-300"></span></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 5. ARTIFACTOLOGY SECTION ================= -->
+        <section id="sec-artifacts" class="tab-content hidden space-y-6">
+            <div class="glass-panel p-6 rounded-2xl border border-gold-600/30 text-center relative">
+                <div class="absolute top-4 right-4 bg-gold-600/20 border border-gold-500/40 text-gold-300 text-xs px-3 py-1 rounded-full font-cinzel">
+                    Практика Старших Курсов
+                </div>
+
+                <h2 class="font-decorative text-2xl text-gold-400 mb-2">Алтарь Артефактологии</h2>
+                <p class="text-sm text-purple-200/80 mb-6 max-w-xl mx-auto">
+                    Создание амулетов, заряженных кристаллов и волшебных палочек станет доступно после сдачи экзаменов по Высшей Магии.
+                </p>
+
+                <!-- Locked Altar Visualization -->
+                <div class="my-8 p-8 border-2 border-dashed border-gold-600/30 rounded-2xl bg-gothic-900/60 max-w-md mx-auto flex flex-col items-center justify-center gap-4">
+                    <div class="relative">
+                        <i class="fa-solid fa-hat-wizard text-6xl text-purple-400/40"></i>
+                        <i class="fa-solid fa-lock text-2xl text-gold-500 absolute -bottom-2 -right-2"></i>
+                    </div>
+                    <p class="text-sm text-gray-400 font-cinzel">
+                        Лаборатория запечатана магической печатью факультета.
+                    </p>
+                    <!-- Preview Interactive Item -->
+                    <button onclick="playLockSound()" class="px-4 py-2 rounded-lg bg-purple-900/40 border border-purple-500/30 text-xs text-purple-300 hover:bg-purple-900/60 transition">
+                        Попытаться прикоснуться к Печати
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="relative z-10 border-t border-gold-600/20 glass-panel py-4 text-center text-xs text-purple-300/60 mt-auto">
+        <p>© Кабинет Прорицаний • Тайные знания Старшего Футарка и Таро</p>
+    </footer>
+
+    <!-- Audio & Interactive Engine Scripts -->
+    <script>
+        /* ==========================================================================
+           1. AUDIO SYNTHESIS ENGINE (Web Audio API - No External Assets Needed)
+           ========================================================================== */
+        class MagicSoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+            }
+
+            playGlassChime() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                
+                // High crystalline frequency sine oscillators
+                [1046.50, 1318.51, 1567.98, 2093.00].forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.05);
+                    
+                    gain.gain.setValueAtTime(0.15, now + idx * 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 1.2);
+                    
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    
+                    osc.start(now + idx * 0.05);
+                    osc.stop(now + idx * 0.05 + 1.2);
+                });
+            }
+
+            playCardRustle() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                
+                // Filtered white noise for paper card flip
+                const bufferSize = this.ctx.sampleRate * 0.2;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.setValueAtTime(800, now);
+                filter.Q.setValueAtTime(3, now);
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                noise.start(now);
+            }
+
+            playWoodKnock() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.08);
+
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.08);
+            }
+
+            playMagicLock() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(120, now);
+                osc.frequency.linearRampToValueAtTime(60, now + 0.3);
+
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.3);
+            }
+        }
+
+        const soundEngine = new MagicSoundEngine();
+
+        // Sound Toggle Button
+        document.getElementById('sound-toggle').addEventListener('click', () => {
+            soundEngine.enabled = !soundEngine.enabled;
+            const icon = document.getElementById('sound-icon');
+            const text = document.getElementById('sound-text');
+            if (soundEngine.enabled) {
+                icon.className = 'fa-solid fa-volume-high';
+                text.innerText = 'Звук: Вкл';
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark';
+                text.innerText = 'Звук: Выкл';
+            }
+        });
+
+        function playLockSound() {
+            soundEngine.playMagicLock();
+        }
+
+        /* ==========================================================================
+           2. AMBIENT BACKGROUND STARS CANVAS
+           ========================================================================== */
+        const starsCanvas = document.getElementById('stars-canvas');
+        const starsCtx = starsCanvas.getContext('2d');
+        let stars = [];
+
+        function resizeStars() {
+            starsCanvas.width = window.innerWidth;
+            starsCanvas.height = window.innerHeight;
+            initStars();
+        }
+
+        function initStars() {
+            stars = [];
+            const count = Math.floor((starsCanvas.width * starsCanvas.height) / 8000);
+            for (let i = 0; i < count; i++) {
+                stars.push({
+                    x: Math.random() * starsCanvas.width,
+                    y: Math.random() * starsCanvas.height,
+                    size: Math.random() * 1.5 + 0.5,
+                    alpha: Math.random(),
+                    speed: Math.random() * 0.01 + 0.005
+                });
+            }
+        }
+
+        function renderStars() {
+            starsCtx.clearRect(0, 0, starsCanvas.width, starsCanvas.height);
+            stars.forEach(star => {
+                star.alpha += star.speed;
+                if (star.alpha > 1 || star.alpha < 0) star.speed = -star.speed;
+
+                starsCtx.fillStyle = `rgba(212, 175, 55, ${Math.abs(star.alpha) * 0.7})`;
+                starsCtx.beginPath();
+                starsCtx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                starsCtx.fill();
+            });
+            requestAnimationFrame(renderStars);
+        }
+
+        window.addEventListener('resize', resizeStars);
+        resizeStars();
+        renderStars();
+
+        /* ==========================================================================
+           3. DATA & WEIGHTED RANDOM DROP RATES ENGINE
+           ========================================================================== */
+        
+        // Helper: Weighted Selection
+        function getWeightedRandom(items) {
+            const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
+            let randomNum = Math.random() * totalWeight;
+            for (let item of items) {
+                if (randomNum < item.weight) {
+                    return item;
+                }
+                randomNum -= item.weight;
+            }
+            return items[0];
+        }
+
+        // 4 Base Visions (For Crystal Ball & Coffee)
+        const BASE_VISIONS = [
+            {
+                id: 'shadow',
+                title: 'Тень (Shadow)',
+                nature: 'Предостережение',
+                natureClass: 'bg-amber-950/60 text-amber-300 border-amber-600/40',
+                icon: '👤',
+                weight: 25, // 25% chance
+                rarityText: 'Шанс выпадения: 25% (Обычный)',
+                core: 'Скрытый фактор, тайные помыслы окружающих или невысказанное опасение.',
+                future: 'Впереди вас ждет неопределенность. Будьте бдительны с новыми знакомыми и не раскрывайте тайны раньше времени.',
+                advice: 'Не торопитесь принимать решения в темноте — дождитесь светлого часа.',
+                quote: 'То, что скрыто в тени, проявится, когда взойдет луна...'
+            },
+            {
+                id: 'person',
+                title: 'Человек (Figure / Person)',
+                nature: 'Судьбоносная встреча',
+                natureClass: 'bg-purple-950/60 text-purple-300 border-purple-600/40',
+                icon: '🧙‍♂️',
+                weight: 35, // 35% chance
+                rarityText: 'Шанс выпадения: 35% (Частый)',
+                core: 'Влияние со стороны. Важная фигура появится на вашем пути.',
+                future: 'В ближайшее время ключевую роль в ваших делах сыграет советник, друг или сильный покровитель.',
+                advice: 'Прислушайтесь к словам близких — через них говорит сама судьба.',
+                quote: 'Лик путника проступает сквозь туман времени...'
+            },
+            {
+                id: 'road',
+                title: 'Дорога (Path / Road)',
+                nature: 'Благоприятный знак',
+                natureClass: 'bg-emerald-950/60 text-emerald-300 border-emerald-600/40',
+                icon: '🛣️',
+                weight: 30, // 30% chance
+                rarityText: 'Шанс выпадения: 30% (Частый)',
+                core: 'Движение вперед, сфера перемен, путешествие или смена жизненного вектора.',
+                future: 'Ваш путь открыт. Застой завершается, начинается активное движение к поставленной цели.',
+                advice: 'Смело делайте шаг вперед, старая дорога осталась позади.',
+                quote: 'Каменистый путь ведет к вершинам гармонии...'
+            },
+            {
+                id: 'cloud',
+                title: 'Облако (Cloud / Mist)',
+                nature: 'Редкое Знамение',
+                natureClass: 'bg-blue-950/60 text-blue-300 border-blue-600/40',
+                icon: '☁️',
+                weight: 10, // 10% chance (Rare)
+                rarityText: 'Шанс выпадения: 10% (Редкое)',
+                core: 'Пелена иллюзий, глубокие мечты или скорое очищение сознания.',
+                future: 'Ситуация пока не имеет четких границ. Всё зависит от вашей внутренней веры.',
+                advice: 'Дайте пыли осесть. Ответ придет, когда туман развеется сам собой.',
+                quote: 'Облака сгущаются перед грозой, освобождающей разум...'
+            }
+        ];
+
+        // TAROT: Major Arcana Cards (22 Cards)
+        const TAROT_CARDS = [
+            { num: '0', title: 'Шут (The Fool)', keywords: 'Начало, спонтанность, свобода', icon: '🃏', weight: 5, forecast: 'День новых начинаний, чистого листа и неожиданных поворотов.', advice: 'Не бойтесь показаться наивным — доверьтесь потоку жизни.' },
+            { num: 'I', title: 'Маг (The Magician)', keywords: 'Мастерство, воля, ресурсы', icon: '🪄', weight: 4, forecast: 'День проистекает под знаком личной силы и умения воплощать задуманное.', advice: 'Все нужные инструменты уже у вас в руках. Действуйте!' },
+            { num: 'II', title: 'Верховная Жрица (High Priestess)', keywords: 'Интуиция, тайна, внутренний голос', icon: '🌙', weight: 4, forecast: 'День тонких чувств, сновидений и скрытых знаний.', advice: 'Доверьтесь шепоту интуиции, а не логическим доводам.' },
+            { num: 'III', title: 'Императрица (The Empress)', keywords: 'Изобилие, гармония, творчество', icon: '👑', weight: 4, forecast: 'День расцвета сил, плодородия и теплого общения.', advice: 'Окружите себя красотой и позаботьтесь о своем комфорте.' },
+            { num: 'IV', title: 'Император (The Emperor)', keywords: 'Порядок, структура, авторитет', icon: '🏛️', weight: 4, forecast: 'День дисциплины, решения организационных вопросов.', advice: 'Наведите порядок в делах и твердо держите границы.' },
+            { num: 'V', title: 'Иерофант (The Hierophant)', keywords: 'Традиции, обучение, мудрость', icon: '📜', weight: 5, forecast: 'День получения глубоких знаний и соблюдения правил.', advice: 'Обратитесь за советом к старшему или наставнику.' },
+            { num: 'VI', title: 'Влюбленные (The Lovers)', keywords: 'Выбор, союз, искренность', icon: '💖', weight: 5, forecast: 'День важного выбора сердцем и гармонии в отношениях.', advice: 'Принимайте решения, основываясь на своих истинных ценностях.' },
+            { num: 'VII', title: 'Колесница (The Chariot)', keywords: 'Прорыв, победа, контроль', icon: '🏹', weight: 4, forecast: 'День стремительного прогресса и преодоления препятствий.', advice: 'Удерживайте управление в своих руках, не сбивайтесь с курса.' },
+            { num: 'VIII', title: 'Сила (Strength)', keywords: 'Стойкость, мягкая сила, терпение', icon: '🦁', weight: 5, forecast: 'День укрощения страстей и проявления внутреннего благородства.', advice: 'Побеждайте добротой и уверенностью, а не агрессией.' },
+            { num: 'IX', title: 'Отшельник (The Hermit)', keywords: 'Поиск истины, покой, мудрость', icon: '🕯️', weight: 5, forecast: 'День размышлений, уединения и переоценки ценностей.', advice: 'Побудьте наедине с собой — ответы внутри вас.' },
+            { num: 'X', title: 'Колесо Фортуны (Wheel of Fortune)', keywords: 'Удача, циклы, судьба', icon: '🎡', weight: 3, forecast: 'День редких шансов и неожиданного поворота событий.', advice: 'Поймайте волну удачи и будьте готовы к переменам.' },
+            { num: 'XI', title: 'Справедливость (Justice)', keywords: 'Баланс, честность, карма', icon: '⚖️', weight: 5, forecast: 'День ясных решений, взвешенности и справедливости.', advice: 'Будьте честны перед собой и окружающими.' },
+            { num: 'XII', title: 'Повешенный (The Hanged Man)', keywords: 'Иной взгляд, пауза, жертва', icon: '🦇', weight: 4, forecast: 'День переосмысления. Возможно, дела на миг затормозят.', advice: 'Взгляните на проблему под противоположным углом.' },
+            { num: 'XIII', title: 'Смерть (Death)', keywords: 'Трансформация, обновление, конец старого', icon: '🦋', weight: 3, forecast: 'День отпускания прошлого и расчистки места для нового.', advice: 'Не держитесь за то, что уже себя изжило.' },
+            { num: 'XIV', title: 'Умеренность (Temperance)', keywords: 'Баланс, мера, исцеление', icon: '🍷', weight: 5, forecast: 'День спокойствия, мягкого восстановления и гармонии.', advice: 'Избегайте крайностей, ищите золотую середину.' },
+            { num: 'XV', title: 'Дьявол (The Devil)', keywords: 'Искушение, привязанность, иллюзия', icon: '🔥', weight: 3, forecast: 'День испытания на прочность и искушений.', advice: 'Не поддавайтесь сиюминутным слабостям и манипуляциям.' },
+            { num: 'XVI', title: 'Башня (The Tower)', keywords: 'Озарение, прорыв, крах иллюзий', icon: '⚡', weight: 2, forecast: 'День крушения старых рамок и внезапного прозрения.', advice: 'Ломается только то, что мешало вашему росту.' },
+            { num: 'XVII', title: 'Звезда (The Star)', keywords: 'Надежда, вдохновение, вера', icon: '🌟', weight: 4, forecast: 'День светлых надежд, мечты и творческого подъема.', advice: 'Верьте в свою звезду — вы на верном пути.' },
+            { num: 'XVIII', title: 'Луна (The Moon)', keywords: 'Иллюзии, тайны, подсознание', icon: '🔮', weight: 4, forecast: 'День повышенной чувствительности и туманных предчувствий.', advice: 'Не верьте страхам, они всего лишь тени.' },
+            { num: 'XIX', title: 'Солнце (The Sun)', keywords: 'Радость, успех, ясность', icon: '☀️', weight: 3, forecast: 'День триумфа, отличного настроения и ясных ответов.', advice: 'Светите и делитесь радостью с окружающими!' },
+            { num: 'XX', title: 'Страшный Суд (Judgement)', keywords: 'Возрождение, призвание, прозрение', icon: '📯', weight: 4, forecast: 'День прощения, исцеления и важного жизненного шага.', advice: 'Примите прошлый опыт и смело идите в новое время.' },
+            { num: 'XXI', title: 'Мир (The World)', keywords: 'Завершение, целостность, гармония', icon: '🌍', weight: 3, forecast: 'День успешного завершения этапа и обретения полноты.', advice: 'Празднуйте свои достижения — вы достигли цели.' }
+        ];
+
+        // RUNES: Elder Futhark 24 Runes
+        const ELDER_FUTHARK_RUNES = [
+            { name: 'Fehu (Феху)', symbol: 'ᚠ', short: 'Богатство, процветание', energy: 'Энергия накопления, материального благополучия и успеха.', wisdom: 'Делитесь своим изобилием, чтобы поток ресурсов не иссякал.', weight: 4 },
+            { name: 'Uruz (Уруз)', symbol: 'ᚢ', short: 'Сила, жизненная энергия', energy: 'Мощная физическая и душевная сила, преодолеть любые преграды.', wisdom: 'Используйте свою силу во благо, не разрушая лишнего.', weight: 4 },
+            { name: 'Thurisaz (Турисаз)', symbol: 'ᚦ', short: 'Врата, защита, шип', energy: 'Символ расчистки пути и защиты от негативных сил.', wisdom: 'Остановитесь перед вратами, подумайте, прежде чем шагнуть.', weight: 4 },
+            { name: 'Ansuz (Ансуз)', symbol: 'ᚨ', short: 'Мудрость, знак, вдохновение', energy: 'Покровительство высших сил, получение важной вести или знака.', wisdom: 'Слушайте внимательно: мудрость придет через слова и знаки.', weight: 4 },
+            { name: 'Raidho (Райдо)', symbol: 'ᚱ', short: 'Путешествие, ритм', energy: 'Энергия гармоничного движения, дороги и верного ритма.', wisdom: 'Доверьтесь своему пути, всё идет своим чередом.', weight: 4 },
+            { name: 'Kenaz (Кеназ)', symbol: 'ᚲ', short: 'Факел, озарение', energy: 'Свет разума, раскрытие талантов и ясное видение.', wisdom: 'Зажгите факел знаний в темных уголках вашей души.', weight: 4 },
+            { name: 'Gebo (Гебо)', symbol: 'ᚷ', short: 'Дар, партнерство', energy: 'Символ равноправного обмена, дружбы и гармоничных союзов.', wisdom: 'Истинный дар не требует ничего взамен, но объединяет сердца.', weight: 4 },
+            { name: 'Wunjo (Вуньо)', symbol: 'ᚹ', short: 'Радость, свет', energy: 'Энергия исполнения желаний, праздника и душевного тепла.', wisdom: 'Наслаждайтесь моментом счастья и делитесь им с близкими.', weight: 4 },
+            { name: 'Hagalaz (Хагалаз)', symbol: 'ᚺ', short: 'Град, стихия', energy: 'Разрушение старых рамок для освобождения места первичному хаосу.', wisdom: 'Град проходит быстро, оставляя землю готовой к новым семенам.', weight: 3 },
+            { name: 'Nauthiz (Наутиз)', symbol: 'ᚾ', short: 'Нужда, закалка', energy: 'Урок терпения, преодоление сдерживающих факторов.', wisdom: 'Нужда учит мудрости и закаляет сталь вашего характера.', weight: 4 },
+            { name: 'Isa (Иса)', symbol: 'ᛁ', short: 'Лёд, застой', energy: 'Пауза, заморозка процессов для сохранения энергии.', wisdom: 'Не пытайтесь растопить лед силой — дождитесь естественного тепла.', weight: 4 },
+            { name: 'Jera (Йера)', symbol: 'ᚱ', short: 'Урожай, цикл', energy: 'Плоды прошлых трудов, награда за терпение и заботу.', wisdom: 'Что посеешь, то и пожнешь. Пришло время собирать урожай.', weight: 4 },
+            { name: 'Eihwaz (Эйваз)', symbol: 'ᛇ', short: 'Древо Иггдрасиль, стойкость', energy: 'Защита, трансформационный мост между мирами.', wisdom: 'Будьте гибки, как тис: он гнется под ветром, но не ломается.', weight: 4 },
+            { name: 'Perthro (Перт)', symbol: 'ᛈ', short: 'Тайна, судьба', energy: 'Скрытые возможности, проявление того, что было утаено.', wisdom: 'Жребий брошен, но окончательный выбор всегда за вами.', weight: 3 },
+            { name: 'Algiz (Альгиз)', symbol: 'ᛉ', short: 'Защита духа', energy: 'Высшая духовная защита, покровительство богов.', wisdom: 'Следуйте своим инстинктам — вы находитесь под надежной защитой.', weight: 4 },
+            { name: 'Sowilo (Соулу)', symbol: 'ᛋ', short: 'Солнце, победа', energy: 'Чистая жизненная энергия, триумф и исцеление.', wisdom: 'Светите ярко, победа на вашей стороне!', weight: 4 },
+            { name: 'Tiwaz (Тейваз)', symbol: 'ᛏ', short: 'Воин, честь', energy: 'Энергия целеустремленности, справедливости и честного боя.', wisdom: 'Готовность жертвовать малым ради высшей правды.', weight: 4 },
+            { name: 'Berkana (Беркана)', symbol: 'ᛒ', short: 'Береза, забота, рост', energy: 'Мягкая женская энергия, рождение новых идей и забота.', wisdom: 'Взращивайте свои начинания с любовью и нежностью.', weight: 4 },
+            { name: 'Ehwaz (Эваз)', symbol: 'ᛖ', short: 'Лошадь, прогресс', energy: 'Сотрудничество, движение вперед в паре или команде.', wisdom: 'Доверие к партнеру ускорит ваше продвижение вдвое.', weight: 4 },
+            { name: 'Mannaz (Манназ)', symbol: 'ᛗ', short: 'Человек, разум', energy: 'Самопознание, человечность и интеграция в общество.', wisdom: 'Познай самого себя, и ты познаешь весь внешний мир.', weight: 4 },
+            { name: 'Laguz (Лагуз)', symbol: 'ᛝ', short: 'Вода, поток, интуиция', energy: 'Энергия гибкого течения, снов и чувственного восприятия.', wisdom: 'Плывите по течению реки жизни, не сопротивляйтесь волнам.', weight: 4 },
+            { name: 'Ingwaz (Ингуз)', symbol: 'ᛝ', short: 'Плодородие, семя', energy: 'Завершение важного этапа и накопление сил перед рывком.', wisdom: 'Семя созрело в земле — скоро оно прорастет прекрасным цветком.', weight: 4 },
+            { name: 'Othala (Одал)', symbol: 'ᛟ', short: 'Наследие, дом', energy: 'Семья, традиции, родной дом и ценные навыки прошлого.', wisdom: 'Опирайтесь на мудрость предков и берегите свой очаг.', weight: 4 },
+            { name: 'Dagaz (Дагаз)', symbol: 'ᛞ', short: 'Рассвет, трансформация', energy: 'Прорыв сквозь тьму, новый день и абсолютная ясность.', wisdom: 'Ночь закончилась — наступил светлый рассвет вашей судьбы.', weight: 3 }
+        ];
+
+        /* ==========================================================================
+           4. TAB NAVIGATION SYSTEM
+           ========================================================================== */
+        function switchTab(tabId) {
+            soundEngine.playGlassChime();
+            
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            // Remove active classes on nav buttons
+            document.querySelectorAll('nav button').forEach(el => {
+                el.classList.remove('glass-panel-active', 'text-gold-400');
+                el.classList.add('text-gray-300');
+            });
+
+            // Show selected tab
+            document.getElementById(`sec-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            activeBtn.classList.add('glass-panel-active', 'text-gold-400');
+            activeBtn.classList.remove('text-gray-300');
+        }
+
+        /* ==========================================================================
+           5. CRYSTAL BALL CANVAS ANIMATION ENGINE
+           ========================================================================== */
+        const crystalCanvas = document.getElementById('crystal-canvas');
+        const crystalCtx = crystalCanvas.getContext('2d');
+        let smokeParticles = [];
+        let currentVisionPattern = null; // 'shadow', 'person', 'road', 'cloud'
+
+        function initSmokeParticles() {
+            smokeParticles = [];
+            for (let i = 0; i < 40; i++) {
+                smokeParticles.push({
+                    x: 160 + (Math.random() - 0.5) * 80,
+                    y: 160 + (Math.random() - 0.5) * 80,
+                    radius: Math.random() * 30 + 15,
+                    alpha: Math.random() * 0.4 + 0.1,
+                    vx: (Math.random() - 0.5) * 0.6,
+                    vy: (Math.random() - 0.5) * 0.6
+                });
+            }
+        }
+
+        function drawCrystalBall() {
+            crystalCtx.clearRect(0, 0, 320, 320);
+
+            // Ball Outer Glow & Background
+            const bgGradient = crystalCtx.createRadialGradient(160, 160, 20, 160, 160, 150);
+            bgGradient.addColorStop(0, '#321d52');
+            bgGradient.addColorStop(0.7, '#0a0612');
+            bgGradient.addColorStop(1, '#000000');
+
+            crystalCtx.fillStyle = bgGradient;
+            crystalCtx.beginPath();
+            crystalCtx.arc(160, 160, 140, 0, Math.PI * 2);
+            crystalCtx.fill();
+
+            // Render Dynamic Smoke
+            smokeParticles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+
+                // Keep inside crystal sphere
+                const dist = Math.hypot(p.x - 160, p.y - 160);
+                if (dist > 110) {
+                    p.vx = -p.vx;
+                    p.vy = -p.vy;
+                }
+
+                crystalCtx.fillStyle = `rgba(157, 78, 221, ${p.alpha})`;
+                crystalCtx.beginPath();
+                crystalCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                crystalCtx.fill();
+            });
+
+            // If a vision was revealed, draw silhouette inside ball
+            if (currentVisionPattern) {
+                crystalCtx.fillStyle = 'rgba(246, 211, 101, 0.7)';
+                crystalCtx.font = '70px serif';
+                crystalCtx.textAlign = 'center';
+                crystalCtx.textBaseline = 'middle';
+                
+                let symbol = '🔮';
+                if (currentVisionPattern === 'shadow') symbol = '👤';
+                if (currentVisionPattern === 'person') symbol = '🧙‍♂️';
+                if (currentVisionPattern === 'road') symbol = '🛣️';
+                if (currentVisionPattern === 'cloud') symbol = '☁️';
+
+                crystalCtx.fillText(symbol, 160, 160);
+            }
+
+            // Glass Reflection Overlay
+            const glassGrad = crystalCtx.createLinearGradient(60, 40, 260, 280);
+            glassGrad.addColorStop(0, 'rgba(255, 255, 255, 0.35)');
+            glassGrad.addColorStop(0.3, 'rgba(255, 255, 255, 0.05)');
+            glassGrad.addColorStop(0.8, 'rgba(0, 0, 0, 0.4)');
+            glassGrad.addColorStop(1, 'rgba(212, 175, 55, 0.3)');
+
+            crystalCtx.strokeStyle = 'rgba(212, 175, 55, 0.5)';
+            crystalCtx.lineWidth = 3;
+            crystalCtx.fillStyle = glassGrad;
+            crystalCtx.beginPath();
+            crystalCtx.arc(160, 160, 140, 0, Math.PI * 2);
+            crystalCtx.fill();
+            crystalCtx.stroke();
+
+            // Highlight Curve
+            crystalCtx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+            crystalCtx.beginPath();
+            crystalCtx.ellipse(120, 80, 50, 20, -Math.PI / 6, 0, Math.PI * 2);
+            crystalCtx.fill();
+
+            requestAnimationFrame(drawCrystalBall);
+        }
+
+        initSmokeParticles();
+        drawCrystalBall();
+
+        // Crystal Ball Click Event
+        document.getElementById('btn-gaze-crystal').addEventListener('click', gazeIntoCrystal);
+        document.getElementById('crystal-ball-container').addEventListener('click', gazeIntoCrystal);
+
+        function gazeIntoCrystal() {
+            soundEngine.playGlassChime();
+
+            // Fast smoke turbulence
+            smokeParticles.forEach(p => {
+                p.vx = (Math.random() - 0.5) * 4;
+                p.vy = (Math.random() - 0.5) * 4;
+            });
+
+            const vision = getWeightedRandom(BASE_VISIONS);
+            currentVisionPattern = vision.id;
+
+            setTimeout(() => {
+                // Settle smoke down
+                smokeParticles.forEach(p => {
+                    p.vx = (Math.random() - 0.5) * 0.6;
+                    p.vy = (Math.random() - 0.5) * 0.6;
+                });
+
+                // Populate Result Box
+                document.getElementById('crystal-sign-icon').innerText = vision.icon;
+                document.getElementById('crystal-sign-title').innerText = `Образ: ${vision.title}`;
+                document.getElementById('crystal-sign-rarity').innerText = vision.rarityText;
+                document.getElementById('crystal-sign-nature').innerText = vision.nature;
+                document.getElementById('crystal-sign-nature').className = `text-xs font-semibold px-3 py-1 rounded-full border ${vision.natureClass}`;
+                
+                document.getElementById('crystal-desc-core').innerText = vision.core;
+                document.getElementById('crystal-desc-future').innerText = vision.future;
+                document.getElementById('crystal-quote').innerText = vision.quote;
+
+                document.getElementById('crystal-result').classList.remove('hidden');
+            }, 800);
+        }
+
+        /* ==========================================================================
+           6. COFFEE GROUNDS READING CANVAS ENGINE
+           ========================================================================== */
+        const coffeeCanvas = document.getElementById('coffee-canvas');
+        const coffeeCtx = coffeeCanvas.getContext('2d');
+
+        function drawCoffeeGrounds(patternId = null) {
+            coffeeCtx.clearRect(0, 0, 220, 220);
+
+            // Cup Bottom Background
+            coffeeCtx.fillStyle = '#1c130d';
+            coffeeCtx.beginPath();
+            coffeeCtx.arc(110, 110, 105, 0, Math.PI * 2);
+            coffeeCtx.fill();
+
+            // Random coffee grain noise
+            coffeeCtx.fillStyle = '#4a3222';
+            for (let i = 0; i < 300; i++) {
+                const rx = 110 + (Math.random() - 0.5) * 160;
+                const ry = 110 + (Math.random() - 0.5) * 160;
+                if (Math.hypot(rx - 110, ry - 110) < 95) {
+                    coffeeCtx.fillRect(rx, ry, Math.random() * 3 + 1, Math.random() * 3 + 1);
+                }
+            }
+
+            // Draw specific pattern if revealed
+            if (patternId) {
+                coffeeCtx.fillStyle = '#0f0a07';
+                coffeeCtx.font = '60px serif';
+                coffeeCtx.textAlign = 'center';
+                coffeeCtx.textBaseline = 'middle';
+
+                let symbol = '☕';
+                if (patternId === 'shadow') symbol = '👥';
+                if (patternId === 'person') symbol = '🧙';
+                if (patternId === 'road') symbol = '〰️';
+                if (patternId === 'cloud') symbol = '☁️';
+
+                coffeeCtx.fillText(symbol, 110, 110);
+            }
+        }
+
+        drawCoffeeGrounds();
+
+        document.getElementById('btn-shake-coffee').addEventListener('click', shakeCoffeeCup);
+        document.getElementById('coffee-cup').addEventListener('click', shakeCoffeeCup);
+
+        function shakeCoffeeCup() {
+            soundEngine.playCardRustle();
+
+            const cup = document.getElementById('coffee-cup');
+            cup.classList.add('shake-cup');
+
+            setTimeout(() => {
+                cup.classList.remove('shake-cup');
+                const vision = getWeightedRandom(BASE_VISIONS);
+                drawCoffeeGrounds(vision.id);
+
+                document.getElementById('coffee-pattern-icon').innerText = vision.icon;
+                document.getElementById('coffee-pattern-title').innerText = `Узор: ${vision.title}`;
+                document.getElementById('coffee-pattern-rarity').innerText = vision.rarityText;
+                document.getElementById('coffee-pattern-nature').innerText = vision.nature;
+                document.getElementById('coffee-pattern-nature').className = `text-xs font-semibold px-3 py-1 rounded-full border ${vision.natureClass}`;
+                
+                document.getElementById('coffee-desc-core').innerText = vision.core;
+                document.getElementById('coffee-desc-advice').innerText = vision.advice;
+
+                document.getElementById('coffee-result').classList.remove('hidden');
+            }, 800);
+        }
+
+        /* ==========================================================================
+           7. TAROT CARD OF THE DAY ENGINE
+           ========================================================================== */
+        let isCardFlipped = false;
+
+        document.getElementById('btn-draw-tarot').addEventListener('click', drawTarotCard);
+        document.getElementById('tarot-card-inner').addEventListener('click', drawTarotCard);
+
+        function drawTarotCard() {
+            soundEngine.playCardRustle();
+            const cardInner = document.getElementById('tarot-card-inner');
+
+            if (isCardFlipped) {
+                // Reset card flip first
+                cardInner.style.transform = 'rotateY(0deg)';
+                isCardFlipped = false;
+                setTimeout(revealNewTarot, 400);
+            } else {
+                revealNewTarot();
+            }
+        }
+
+        function revealNewTarot() {
+            const card = getWeightedRandom(TAROT_CARDS);
+
+            document.getElementById('tarot-card-num').innerText = card.num;
+            document.getElementById('tarot-card-icon').innerText = card.icon;
+            document.getElementById('tarot-card-title').innerText = card.title;
+            document.getElementById('tarot-card-keywords').innerText = card.keywords;
+
+            document.getElementById('tarot-res-title').innerText = `Аркан: ${card.title}`;
+            document.getElementById('tarot-res-rarity').innerText = `Шанс выпадения: ${(card.weight / 90 * 100).toFixed(1)}%`;
+            document.getElementById('tarot-res-forecast').innerText = card.forecast;
+            document.getElementById('tarot-res-advice').innerText = card.advice;
+
+            const cardInner = document.getElementById('tarot-card-inner');
+            cardInner.style.transform = 'rotateY(180deg)';
+            isCardFlipped = true;
+
+            document.getElementById('tarot-result').classList.remove('hidden');
+        }
+
+        /* ==========================================================================
+           8. SCANDINAVIAN RUNES ENGINE (Elder Futhark)
+           ========================================================================== */
+        document.getElementById('btn-draw-rune').addEventListener('click', drawRune);
+        document.getElementById('rune-bag').addEventListener('click', drawRune);
+
+        function drawRune() {
+            soundEngine.playWoodKnock();
+
+            const runeTile = document.getElementById('rune-tile');
+            runeTile.classList.add('scale-90', 'rotate-12');
+
+            setTimeout(() => {
+                runeTile.classList.remove('scale-90', 'rotate-12');
+
+                const rune = getWeightedRandom(ELDER_FUTHARK_RUNES);
+
+                document.getElementById('rune-symbol').innerText = rune.symbol;
+                document.getElementById('rune-name-short').innerText = rune.name.split(' ')[0];
+
+                document.getElementById('rune-res-title').innerText = `Руна: ${rune.name}`;
+                document.getElementById('rune-res-meaning-short').innerText = rune.short;
+                document.getElementById('rune-res-symbol-large').innerText = rune.symbol;
+                document.getElementById('rune-res-energy').innerText = rune.energy;
+                document.getElementById('rune-res-wisdom').innerText = rune.wisdom;
+
+                document.getElementById('rune-result').classList.remove('hidden');
+            }, 300);
+        }
+    </script>
+</body>
+</html>
